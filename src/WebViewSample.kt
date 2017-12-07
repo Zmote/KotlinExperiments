@@ -25,8 +25,10 @@ import javafx.util.Callback
 import netscape.javascript.JSObject
 import java.io.File
 import java.io.InputStream
+import java.security.KeyStore
+import java.util.*
 
-//Adapted to Kotlin, from : https://docs.oracle.com/javafx/2/webview/jfxpub-webview.htm
+//Adapted to Kotlin, from : https://docs.oracle.com/javafx/2/webview/jfxpub-webview.htm and extended
 class WebViewSample : Application() {
 
     private var scene: Scene? = null
@@ -59,8 +61,22 @@ class WebViewSample : Application() {
 
     private fun loadHistory(){
         val inputStream:InputStream = File("browserHistory.txt").inputStream()
-        val inputString = inputStream.bufferedReader().use { it.readText() };
-        println(inputString);
+        val inputString = inputStream.bufferedReader().use { it.readText() }
+        val arr = inputString.split("\n")
+        for(entry in arr){
+            val startIndex = entry.indexOf("url: ") + 5
+            val endIndex = entry.indexOf(",")
+            if(startIndex != -1 && endIndex != -1){
+                val url = entry.substring(startIndex,endIndex)
+                //TODO: To persist history and load it after we relaunch our app, we need to
+                // avoid using WebHistory directly. WebHistory is, by definition, Session based
+                //therefore it can't be set, only queried. Which means, for a peristable
+                //history, we need to define our own "WebHistory" object use it to navigate
+                //back and forth and allow it to be populated with history states
+                //We may use WebHistory for new entries though
+                println("url is : " + url)
+            }
+        }
     }
 
     companion object {
@@ -69,6 +85,29 @@ class WebViewSample : Application() {
         fun main(args: Array<String>) {
             launch(WebViewSample::class.java);
         }
+    }
+}
+
+internal class CustomWebHistory{
+
+    //We may extend it to hold more than just a string later
+    //Also, we may change the holder from a Stack later on
+    // to proivde forward and backward navigation
+    private val history = Stack<String>()
+
+    fun go(offset:Int){
+        if(offset != 0){
+
+        }
+    }
+
+    fun setHistory(values:List<String>){
+        for(item in values)
+            history.push(item)
+    }
+
+    fun getHistory(): List<String> {
+        return history.toList()
     }
 }
 
