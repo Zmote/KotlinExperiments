@@ -1,9 +1,14 @@
+import com.sun.webkit.BackForwardList
+import com.sun.webkit.BackForwardList.Entry
+import com.sun.webkit.WebPage
 import javafx.application.Application
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.layout.StackPane
+import javafx.scene.web.WebEngine
+import javafx.scene.web.WebHistory
 import javafx.stage.Stage
 
 class MyFXWindowClass : Application() {
