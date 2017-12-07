@@ -18,25 +18,49 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
 import javafx.scene.paint.Color
+import javafx.scene.web.WebEngine
 import javafx.scene.web.WebView
 import javafx.stage.Stage
 import javafx.util.Callback
 import netscape.javascript.JSObject
+import java.io.File
+import java.io.InputStream
 
 //Adapted to Kotlin, from : https://docs.oracle.com/javafx/2/webview/jfxpub-webview.htm
 class WebViewSample : Application() {
 
     private var scene: Scene? = null
+    private var browser:Browser? = null;
 
     override fun start(stage: Stage) {
         // create scene
         stage.title = "Web View"
-        scene = Scene(Browser(), 750.0, 500.0, Color.web("#666970"))
+        browser = Browser();
+        scene = Scene(browser, 750.0, 500.0, Color.web("#666970"))
         stage.scene = scene
         // apply CSS style
         scene!!.stylesheets.add("webviewsample/BrowserToolbar.css")
         // show stage
         stage.show()
+        loadHistory()
+    }
+
+    override fun stop() {
+        super.stop()
+        saveHistory()
+    }
+
+    private fun saveHistory(){
+        File("browserHistory.txt").printWriter().use { out ->
+            for(item in browser!!.getWebEngine()!!.history.entries)
+                out.println(item);
+        }
+    }
+
+    private fun loadHistory(){
+        val inputStream:InputStream = File("browserHistory.txt").inputStream()
+        val inputString = inputStream.bufferedReader().use { it.readText() };
+        println(inputString);
     }
 
     companion object {
@@ -55,6 +79,7 @@ internal class Browser : Region() {
 
     private val toolBar: HBox
     private val browser = WebView()
+
     init {
 
         val selectedImage = ImageView()
@@ -150,7 +175,6 @@ internal class Browser : Region() {
 
     // JavaScript interface object
     inner class JavaApp {
-
         fun exit() {
             Platform.exit()
         }
@@ -160,6 +184,10 @@ internal class Browser : Region() {
         val spacer = Region()
         HBox.setHgrow(spacer, Priority.ALWAYS)
         return spacer
+    }
+
+    fun getWebEngine(): WebEngine? {
+        return browser.engine
     }
 
     override fun layoutChildren() {
