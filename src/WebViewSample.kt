@@ -1,6 +1,9 @@
 import javafx.application.Application
 import javafx.application.Platform
+import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
+import javafx.collections.ObservableArray
+import javafx.collections.ObservableList
 import javafx.concurrent.Worker.State
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
@@ -54,7 +57,7 @@ class WebViewSample : Application() {
 
     private fun saveHistory(){
         File("browserHistory.txt").printWriter().use { out ->
-            for(item in browser!!.getWebEngine()!!.history.entries)
+            for(item in browser!!.customHistory.getHistory())
                 out.println(item);
         }
     }
@@ -64,17 +67,8 @@ class WebViewSample : Application() {
         val inputString = inputStream.bufferedReader().use { it.readText() }
         val arr = inputString.split("\n")
         for(entry in arr){
-            val startIndex = entry.indexOf("url: ") + 5
-            val endIndex = entry.indexOf(",")
-            if(startIndex != -1 && endIndex != -1){
-                val url = entry.substring(startIndex,endIndex)
-                //TODO: To persist history and load it after we relaunch our app, we need to
-                // avoid using WebHistory directly. WebHistory is, by definition, Session based
-                //therefore it can't be set, only queried. Which means, for a peristable
-                //history, we need to define our own "WebHistory" object use it to navigate
-                //back and forth and allow it to be populated with history states
-                //We may use WebHistory for new entries though
-                println("url is : " + url)
+            if(!entry.isEmpty()){
+                browser!!.customHistory.add(entry.trim())
             }
         }
     }
@@ -88,26 +82,31 @@ class WebViewSample : Application() {
     }
 }
 
-internal class CustomWebHistory{
+internal class CustomWebHistory(browserEngine: Browser) {
 
     //We may extend it to hold more than just a string later
     //Also, we may change the holder from a Stack later on
     // to proivde forward and backward navigation
-    private val history = Stack<String>()
+    private val history = FXCollections.observableArrayList<String>()
+    private val browser = browserEngine;
 
-    fun go(offset:Int){
-        if(offset != 0){
-
+    fun add(url:String){
+        if(!history.contains(url)) {
+            history.add(url)
         }
     }
 
-    fun setHistory(values:List<String>){
-        for(item in values)
-            history.push(item)
+    fun remove(url:String):Boolean{
+        return history.remove(url);
     }
 
-    fun getHistory(): List<String> {
-        return history.toList()
+    fun setHistory(values:List<String>){
+        history.clear()
+        history += values
+    }
+
+    fun getHistory(): ObservableList<String> {
+        return history
     }
 }
 
@@ -115,7 +114,7 @@ internal class Browser : Region() {
     private val imageFiles = arrayOf("product.png", "blog.png", "documentation.png", "partners.png", "help.png")
     private val captions = arrayOf("Products", "Blogs", "Documentation", "Partners", "Help")
     private val urls = arrayOf("http://www.oracle.com/products/index.html", "http://blogs.oracle.com/", "http://docs.oracle.com/javase/index.html", "http://www.oracle.com/partners/index.html", "https://docs.oracle.com/en/")
-
+    val customHistory = CustomWebHistory(this);
     private val toolBar: HBox
     private val browser = WebView()
 
@@ -175,20 +174,31 @@ internal class Browser : Region() {
 
         //process history
         val history = webEngine.history
+
+        customHistory.getHistory().addListener(ListChangeListener { c ->
+            c.next()
+            for (e in c.removed) {
+                comboBox.items.remove(e)
+            }
+            for (e in c.addedSubList) {
+                comboBox.items.add(e)
+            }
+        })
+
         history.entries.addListener(ListChangeListener { c ->
             c.next()
             for (e in c.removed) {
-                comboBox.items.remove(e.url)
+                //if something is removed from the webhistory, removed it from my custom history as well
+                customHistory.remove(e.url)
             }
             for (e in c.addedSubList) {
-                comboBox.items.add(e.url)
+                customHistory.add(e.url)
             }
         })
 
         //set the behavior for the history combobox
         comboBox.onAction = EventHandler<ActionEvent> {
-            val offset = comboBox.selectionModel.selectedIndex - history.currentIndex
-            history.go(offset)
+            browser.engine.load(comboBox.selectionModel.selectedItem)
         }
 
 

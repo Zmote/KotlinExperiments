@@ -1,1 +1,7 @@
-[url: https://www.oracle.com/products/index.html, title: Products and Services | Hardware, Software, Services | Oracle, date: Thu Dec 07 17:20:12 CET 2017]
+https://www.oracle.com/products/index.html
+https://blogs.oracle.com/
+http://www.oracle.com/partners/index.html
+https://docs.oracle.com/en/
+https://docs.oracle.com/javase/index.html
+https://docs.oracle.com/apps/search/search.jsp?category=all&q=java&product=
+https://docs.oracle.com/javase/8/docs/technotes/tools/index.html
