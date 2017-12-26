@@ -82,13 +82,9 @@ class WebViewSample : Application() {
     }
 }
 
-internal class CustomWebHistory(browserEngine: Browser) {
+internal class CustomWebHistory{
 
-    //We may extend it to hold more than just a string later
-    //Also, we may change the holder from a Stack later on
-    // to proivde forward and backward navigation
     private val history = FXCollections.observableArrayList<String>()
-    private val browser = browserEngine;
 
     fun add(url:String){
         if(!history.contains(url)) {
@@ -100,11 +96,6 @@ internal class CustomWebHistory(browserEngine: Browser) {
         return history.remove(url);
     }
 
-    fun setHistory(values:List<String>){
-        history.clear()
-        history += values
-    }
-
     fun getHistory(): ObservableList<String> {
         return history
     }
@@ -114,7 +105,7 @@ internal class Browser : Region() {
     private val imageFiles = arrayOf("product.png", "blog.png", "documentation.png", "partners.png", "help.png")
     private val captions = arrayOf("Products", "Blogs", "Documentation", "Partners", "Help")
     private val urls = arrayOf("http://www.oracle.com/products/index.html", "http://blogs.oracle.com/", "http://docs.oracle.com/javase/index.html", "http://www.oracle.com/partners/index.html", "https://docs.oracle.com/en/")
-    val customHistory = CustomWebHistory(this);
+    val customHistory = CustomWebHistory();
     private val toolBar: HBox
     private val browser = WebView()
 
